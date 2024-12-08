@@ -6,13 +6,13 @@
 
 - Install make if not available
   - Run ``make`` in root for a full list of available commands. 
-## Run with docker compose is recommended (with compose for your platform) https://docs.docker.com/get-docker/
+## Run with docker compose is recommended https://docs.docker.com/get-docker/
 
   ``make docker-run``  
     
   The docker container port to host mapping is 8080:8080 for Go server and 8081:8081 for frontend.  
-  You can configure the Go port but this will not change the docker mapping.  
-  The dockerfile copies the entire project root and builds/runs the server there as is.  
+  You can configure the Go port of the server but this will not change the docker mapping.  
+  The dockerfile for Go copies the entire project root and builds/runs the server there as is.  
   I did not use a multistage build.
 
 **Without docker:**  

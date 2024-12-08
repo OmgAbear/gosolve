@@ -38,7 +38,7 @@ func loadData(cfg *config.Config) []int {
 	var data []int
 	for _, line := range lines {
 		if line == "" {
-			continue // Skip empty lines
+			continue
 		}
 		num, err := strconv.Atoi(strings.TrimSpace(line))
 		if err != nil {

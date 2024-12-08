@@ -3,7 +3,7 @@
 .idea/
 frontend/node_modules
 frontend/dist
-
+number-index-service
 # VSCode IDE
 .vscode/
 
