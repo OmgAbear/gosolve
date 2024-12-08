@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  go-server:
+    build:
+      context: ..
+      dockerfile: ./dev/Dockerfile
+    container_name: "gosolve-coding"
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: ./dev/Dockerfile-node
+    container_name: "gosolve-frontend"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - go-server
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

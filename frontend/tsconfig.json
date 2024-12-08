@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",           // Use ES modules
+    "target": "ES2015",           // ES6+ for browser compatibility
+    "outDir": "./dist",           // Output directory for compiled files
+    "rootDir": "./src",           // Source directory
+    "moduleResolution": "Classic" // Resolve like the browser does
+  },
+  "include": ["src/**/*"],         // Include all TypeScript files in src/
+  "exclude": ["node_modules"]      // Exclude dependencies
+}

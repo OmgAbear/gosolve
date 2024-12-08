@@ -1,0 +1,5 @@
+server:
+  port: 8080
+logging:
+  level: Info
+input_file_path: static/input.txt
