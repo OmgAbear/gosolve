@@ -17,7 +17,7 @@ export class SearchService {
         const sanitizedValue = this.sanitizeInput(value);
 
         try {
-            const response = await fetch(`${this.BASE_URL}/endpoint/${encodeURIComponent(sanitizedValue)}`, {
+            const response = await fetch(`${this.BASE_URL}/numbers/${encodeURIComponent(sanitizedValue)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -54,6 +54,7 @@ export class SearchService {
             .trim();
     }
 
+    // generally prefer to avoid any but in this case seems valid for a guard
     private static isValidSearchResult(result: any): result is SearchResult {
         return (
             typeof result === 'object' &&

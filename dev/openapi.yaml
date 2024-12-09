@@ -1,0 +1,75 @@
+openapi: 3.0.3
+info:
+  title: Numbers API
+  version: 1.0.0
+  description: API for fetching details related to a specific number.
+paths:
+  /numbers/{value}:
+    get:
+      summary: Retrieve information about a number
+      description: Fetch details associated with a specific positive integer.
+      parameters:
+        - name: value
+          in: path
+          required: true
+          description: The positive integer to look up.
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Successful response with number details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                    description: The index of the number in the dataset.
+                  value:
+                    type: integer
+                    description: The requested number.
+                  message:
+                    type: string
+                    nullable: true
+                    description: Additional information or message (optional).
+                example:
+                  index: 5
+                  value: 42
+                  message: "Number found successfully."
+        '400':
+          description: Bad Request - Invalid input (e.g., not a positive integer).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                    example: -1
+                  value:
+                    type: integer
+                    example: -1
+                  message:
+                    type: string
+                    example: "Invalid value provided. Value must be a positive integer."
+        '404':
+          description: Not Found - The requested number does not exist in the dataset.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                    example: -1
+                  value:
+                    type: integer
+                    example: -1
+                  message:
+                    type: string
+                    example: "Number not found."
+servers:
+  - url: http://127.0.0.1:8080
+    description: Local development server

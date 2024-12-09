@@ -18,5 +18,5 @@ func RegisterRoutes(router *mux.Router) {
 
 	numbersHandler := NewNumbersHandler(repoFactory, logger)
 
-	router.HandleFunc("/endpoint/{value}", numbersHandler.get).Methods(http.MethodGet)
+	router.HandleFunc("/numbers/{value}", numbersHandler.get).Methods(http.MethodGet)
 }

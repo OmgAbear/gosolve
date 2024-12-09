@@ -23,7 +23,7 @@ and this will start the go server locally.
     
     -root
         - cmd holds any available command mains - in this case, a basic http server
-        - dev holds development relevant docs and tools
+        - dev holds development relevant docs and tools, including openapi spec
         - config holds the yaml configuration file
         - frontend holds the relevant frontend code. Normally would be a separate repository.
         - internal holds different layers
@@ -43,4 +43,4 @@ The only validation is for string to int conversion when calling the endpoint.
 The path ```{value}``` is expected to fit into an int (platform dependant).
 
 ## Http Calls ##
-There's a postman collection in dev folder.
+curl localhost:8080/numbers/1110

@@ -14,6 +14,9 @@ import (
 	"github.com/OmgAbear/gosolve/internal/config"
 )
 
+// NotFoundIndex represent the index that points to a "not found" equivalent
+const NotFoundIndex = -1
+
 type NumbersRepo struct {
 	data   []int
 	logger *slog.Logger
@@ -57,61 +60,67 @@ func loadData(cfg *config.Config) []int {
 // It returns a NumbersResult dto from the http_interface pkg
 // Normally, I would not have used the same dto and generally create separate DTOs and mappings as needed
 // between different packages
+//
+// If a number is not found it also looks at the adjacent numbers and checks if they are within a 10% accept deviation
+// It returns the one with the closest acceptable deviation
 func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 	dataLen := len(r.data)
 
 	// Binary search for exact or nearest match
-	index := sort.SearchInts(r.data, target)
+	indexForTarget := sort.SearchInts(r.data, target)
 
 	// If exact match found
-	if index < dataLen && r.data[index] == target {
+	if indexForTarget < dataLen && r.data[indexForTarget] == target {
 		r.logger.Info(fmt.Sprintf("Found exact match for target %d", target))
-		return dto.NumbersResult{
-			Index: index,
-			Value: r.data[index],
-		}
+		return populateNumbersResult(
+			indexForTarget,
+			r.data[indexForTarget],
+			nil,
+		)
 	}
 
-	foundIdx := -1
-	foundValue := -1
-	message := fmt.Sprintf("target %d not found", target)
+	result := dto.NumbersResult{
+		Index:   NotFoundIndex,
+		Value:   -1,
+		Message: func() *string { ret := fmt.Sprintf("target %d not found", target); return &ret }(),
+	}
 	maxDeviation := target / 10
 
-	// Check if we might be at the start and if so, return
-	if index == 0 {
-		deviationToNext := r.data[index] - target
+	// Check if we might be at the start and if so return or if within deviation from start, return
+	if indexForTarget == 0 {
+		deviationToNext := r.data[indexForTarget] - target
 		if deviationToNext <= maxDeviation {
 			r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
-			foundIdx = index
-			foundValue = r.data[index]
-			message = fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", foundValue)
+			message := fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", r.data[indexForTarget-1])
+
+			result = populateNumbersResult(
+				indexForTarget,
+				r.data[indexForTarget],
+				&message,
+			)
 		}
-		return dto.NumbersResult{
-			Index:   foundIdx,
-			Value:   foundValue,
-			Message: &message,
-		}
+		return result
 	}
 
-	// Check if we might be at the end and if so, return
-	if index == dataLen {
-		deviationToPrev := target - r.data[index-1]
+	// Check if we might be at the end and return or if within deviation from end, return
+	if indexForTarget == dataLen {
+		deviationToPrev := target - r.data[indexForTarget-1]
 		if deviationToPrev <= maxDeviation {
 			r.logger.Info(fmt.Sprintf("Found previous number within deviation %d for target %d", maxDeviation, target))
-			foundIdx = index - 1
-			foundValue = r.data[index-1]
-			message = fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", foundValue)
+			message := fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", r.data[indexForTarget-1])
+
+			result = populateNumbersResult(
+				indexForTarget-1,
+				r.data[indexForTarget-1],
+				&message,
+			)
 		}
-		return dto.NumbersResult{
-			Index:   foundIdx,
-			Value:   foundValue,
-			Message: &message,
-		}
+		return result
 	}
 
-	// Check within bounds
-	prevIdx := index - 1
-	nextIdx := index
+	// We did not find it relative to first or last value. Check within bounds
+	prevIdx := indexForTarget - 1
+	nextIdx := indexForTarget
 	deviationToPrev := target - r.data[prevIdx]
 	deviationToNext := r.data[nextIdx] - target
 
@@ -119,33 +128,50 @@ func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 	if deviationToPrev <= maxDeviation && deviationToNext <= maxDeviation {
 		if deviationToPrev <= deviationToNext {
 			r.logger.Info(fmt.Sprintf("Found previous number within deviation %d for target %d", maxDeviation, target))
-			foundIdx = prevIdx
-			foundValue = r.data[prevIdx]
-			message = fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", foundValue)
+			message := fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", r.data[prevIdx])
+
+			result = populateNumbersResult(
+				prevIdx,
+				r.data[prevIdx],
+				&message,
+			)
 		} else {
 			r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
-			foundIdx = nextIdx
-			foundValue = r.data[nextIdx]
-			message = fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", foundValue)
+			message := fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", r.data[nextIdx])
+			result = populateNumbersResult(
+				nextIdx,
+				r.data[nextIdx],
+				&message,
+			)
 		}
 	} else if deviationToPrev <= maxDeviation {
 		r.logger.Info(fmt.Sprintf("Found previous number within deviation %d for target %d", maxDeviation, target))
 
 		// Else, if only the prev is viable within deviation, use that
-		foundIdx = prevIdx
-		foundValue = r.data[prevIdx]
-		message = fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", foundValue)
+		message := fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", r.data[prevIdx])
+		result = populateNumbersResult(
+			prevIdx,
+			r.data[prevIdx],
+			&message,
+		)
 	} else if deviationToNext <= maxDeviation {
 		r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
 		// Else, if only the next is viable within deviation, use that
-		foundIdx = nextIdx
-		foundValue = r.data[nextIdx]
-		message = fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", foundValue)
+		message := fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", r.data[nextIdx])
+		result = populateNumbersResult(
+			nextIdx,
+			r.data[nextIdx],
+			&message,
+		)
 	}
 
+	return result
+}
+
+func populateNumbersResult(foundIdx, foundValue int, message *string) dto.NumbersResult {
 	return dto.NumbersResult{
 		Index:   foundIdx,
 		Value:   foundValue,
-		Message: &message,
+		Message: message,
 	}
 }

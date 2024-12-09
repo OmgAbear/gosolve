@@ -50,15 +50,15 @@ func (handler NumbersHandler) get(writer http.ResponseWriter, request *http.Requ
 		})
 		return
 	}
-
+	
 	searchResult := handler.dataRepo.FindNearestIndex(target)
 
-	writer.WriteHeader(http.StatusOK)
-	resp := dto.NumbersResult{
-		Index:   searchResult.Index,
-		Value:   searchResult.Value,
-		Message: searchResult.Message,
+	resultStatus := http.StatusOK
+	if searchResult.Index == -1 {
+		resultStatus = http.StatusNotFound
 	}
 
-	_ = json.NewEncoder(writer).Encode(resp)
+	writer.WriteHeader(resultStatus)
+
+	_ = json.NewEncoder(writer).Encode(searchResult)
 }
