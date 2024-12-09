@@ -91,7 +91,7 @@ func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 		deviationToNext := r.data[indexForTarget] - target
 		if deviationToNext <= maxDeviation {
 			r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
-			message := fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", r.data[indexForTarget-1])
+			message := fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", r.data[indexForTarget])
 
 			result = populateNumbersResult(
 				indexForTarget,

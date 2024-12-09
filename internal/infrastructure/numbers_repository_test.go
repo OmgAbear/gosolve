@@ -1,12 +1,34 @@
 package infrastructure
 
 import (
+	"context"
 	"fmt"
 	"github.com/OmgAbear/gosolve/internal/http_interface/dto"
+	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// Used for the dummy logger injected from tests
+// Did not want to mock it for this exercise
+type NoOpHandler struct{}
+
+func (h NoOpHandler) Enabled(context context.Context, level slog.Level) bool {
+	return false
+}
+
+func (h NoOpHandler) Handle(ctx context.Context, r slog.Record) error {
+	return nil
+}
+
+func (h NoOpHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return h
+}
+
+func (h NoOpHandler) WithGroup(name string) slog.Handler {
+	return h
+}
 
 func TestFindNearestIndex(t *testing.T) {
 	tests := []struct {
@@ -106,7 +128,7 @@ func TestFindNearestIndex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := NumbersRepo{data: tt.data}
+			repo := NumbersRepo{data: tt.data, logger: slog.New(NoOpHandler{})}
 			result := repo.FindNearestIndex(tt.target)
 
 			assert.Equal(t, tt.expectedResult.Index, result.Index)
