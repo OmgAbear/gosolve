@@ -20,11 +20,6 @@
 and this will start the go server locally.  
   Frontend can also be built locally if you have the right tools. It was tested locally with node v20.12.2 under nvm, built with esbuild, files were served with http-server.
 ## Structure:
-
-- The Makefile contains a list of commands to build/start/test/clean artifacts on local machines.
-It also contains commands to run the relevant servers in docker containers    
-
-**Project structure**
     
     -root
         - cmd holds any available command mains - in this case, a basic http server

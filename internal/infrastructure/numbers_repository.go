@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/OmgAbear/gosolve/internal/http_interface/dto"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -14,12 +15,14 @@ import (
 )
 
 type NumbersRepo struct {
-	data []int
+	data   []int
+	logger *slog.Logger
 }
 
-func NewNumbersRepo(cfg *config.Config) *NumbersRepo {
+func NewNumbersRepo(cfg *config.Config, logger *slog.Logger) *NumbersRepo {
 	return &NumbersRepo{
-		data: loadData(cfg),
+		data:   loadData(cfg),
+		logger: logger,
 	}
 }
 
@@ -62,6 +65,7 @@ func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 
 	// If exact match found
 	if index < dataLen && r.data[index] == target {
+		r.logger.Info(fmt.Sprintf("Found exact match for target %d", target))
 		return dto.NumbersResult{
 			Index: index,
 			Value: r.data[index],
@@ -77,6 +81,7 @@ func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 	if index == 0 {
 		deviationToNext := r.data[index] - target
 		if deviationToNext <= maxDeviation {
+			r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
 			foundIdx = index
 			foundValue = r.data[index]
 			message = fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", foundValue)
@@ -92,6 +97,7 @@ func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 	if index == dataLen {
 		deviationToPrev := target - r.data[index-1]
 		if deviationToPrev <= maxDeviation {
+			r.logger.Info(fmt.Sprintf("Found previous number within deviation %d for target %d", maxDeviation, target))
 			foundIdx = index - 1
 			foundValue = r.data[index-1]
 			message = fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", foundValue)
@@ -112,20 +118,25 @@ func (r *NumbersRepo) FindNearestIndex(target int) dto.NumbersResult {
 	// Check which value is closer within the 10% deviation if both are viable
 	if deviationToPrev <= maxDeviation && deviationToNext <= maxDeviation {
 		if deviationToPrev <= deviationToNext {
+			r.logger.Info(fmt.Sprintf("Found previous number within deviation %d for target %d", maxDeviation, target))
 			foundIdx = prevIdx
 			foundValue = r.data[prevIdx]
 			message = fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", foundValue)
 		} else {
+			r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
 			foundIdx = nextIdx
 			foundValue = r.data[nextIdx]
 			message = fmt.Sprintf("Exact value not found. Found %d next value in accepted deviation.", foundValue)
 		}
 	} else if deviationToPrev <= maxDeviation {
+		r.logger.Info(fmt.Sprintf("Found previous number within deviation %d for target %d", maxDeviation, target))
+
 		// Else, if only the prev is viable within deviation, use that
 		foundIdx = prevIdx
 		foundValue = r.data[prevIdx]
 		message = fmt.Sprintf("Exact value not found. Found %d previous value in accepted deviation.", foundValue)
 	} else if deviationToNext <= maxDeviation {
+		r.logger.Info(fmt.Sprintf("Found next number within deviation %d for target %d", maxDeviation, target))
 		// Else, if only the next is viable within deviation, use that
 		foundIdx = nextIdx
 		foundValue = r.data[nextIdx]

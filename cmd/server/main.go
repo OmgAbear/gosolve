@@ -13,6 +13,7 @@ import (
 
 func main() {
 	router := mux.NewRouter()
+	router.Use(httpInterface.LoggingMiddleware)
 	httpInterface.RegisterRoutes(router)
 
 	c := cors.New(cors.Options{

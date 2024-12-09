@@ -13,7 +13,7 @@ func RegisterRoutes(router *mux.Router) {
 	logger := config.GetLogger()
 
 	repoFactory := func() NumbersRepo {
-		return infrastructure.NewNumbersRepo(cfg)
+		return infrastructure.NewNumbersRepo(cfg, logger)
 	}
 
 	numbersHandler := NewNumbersHandler(repoFactory, logger)
