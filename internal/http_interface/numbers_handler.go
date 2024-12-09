@@ -50,7 +50,7 @@ func (handler NumbersHandler) get(writer http.ResponseWriter, request *http.Requ
 		})
 		return
 	}
-	
+
 	searchResult := handler.dataRepo.FindNearestIndex(target)
 
 	resultStatus := http.StatusOK

@@ -31,7 +31,7 @@ func GetLogger() *slog.Logger {
 		default:
 			logLevel = slog.LevelInfo
 		}
-		
+
 		loggerInstance = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			Level: logLevel,
 		}))
